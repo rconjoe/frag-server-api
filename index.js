@@ -22,5 +22,8 @@ io.on('connection', socket => {
         console.log('message sent')
     })
 })
-
+app.get('/test', (req, res) => {
+    console.log('it works')
+    res.send('cool')
+})
 httpServer.listen(3000)
