@@ -24,6 +24,6 @@ io.on('connection', socket => {
 })
 app.get('/test', (req, res) => {
     console.log('it works')
-    res.send('cool')
+    res.send('gameserver api test endpoint')
 })
-httpServer.listen(3000)
+httpServer.listen(3001)
