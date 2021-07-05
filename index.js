@@ -1,35 +1,26 @@
-const express = require('express')
-const cors = require('cors')
-const app = express()
-app.use(cors({
-    origin: 'http://localhost:3000'
-}))
-const port = 3000
-const { spawn } = require('child_process')
-const io = require('socket.io')(8080, {
-    cors: { origin: "*" }
-})
-io.on('connection', (socket) => {
-    console.log('a user connected')
+const app = require('express')()
+const httpServer = require('http').createServer(app)
+const options = { cors: { origin: "*" } }
+const io = require('socket.io')(httpServer, options)
+const pty = require('node-pty')
 
-    socket.on('message', (message) => {
-        console.log(message)
-        io.emit('message', `${message}`)
+io.on('connection', socket => {
+    console.log('user connected')
+
+    const term = pty.spawn('bash', [], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 35,
+        cwd: process.env.HOME,
+        env: process.env
     })
-})
-app.get('/', (req, res) => {
-  console.log('request received')
-  const child = spawn('ip', ['a'])
-    child.stdout.on('data', (data) => {
-        console.log(data)
-        res.send(data)
+    term.on('data', data => {
+        socket.emit('message', data)
     })
-    child.stderr.on('data', (data) => {
-        console.log(data)
-        res.send(data)
+    socket.on('message', data => {
+        term.write(data)
+        console.log('message sent')
     })
 })
 
-app.listen(port, () => {
-  console.log(`listening at http://localhost:${port}`)
-})
+httpServer.listen(3000)
